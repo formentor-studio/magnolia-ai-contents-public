@@ -19,13 +19,15 @@ This module of [Magnolia CMS](https://www.magnolia-cms.com/) provides a set of f
     </dependency>
 </dependencies>
 ```
-2. Set the environment variable _OPENAI_TOKEN_ or _AZURE_API_KEY_ with the _secret key_ of [Open AI](https://openai.com/) or _api-key_ of [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/) depending on the implementation.
-
+2. Set the _token_ of [OpenAI](https://openai.com/) or _api-key_ of [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/) in [passwords manager](https://docs.magnolia-cms.com/product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html).  
+In case of using [passwords manager](https://docs.magnolia-cms.com/>product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html), the OpenAI token must be stored in the path `/openai/token` and Azure api-key in `/azure/api-key`
+![passwords-manager](_docs/passwords-manager.png)
+It is possible to specify the _token_ and _api-key_ using the environment variables `OPENAI_TOKEN` or `AZURE_API_KEY`
 ```bash
 export OPENAI_TOKEN=sk-...84jf
 export AZURE_API_KEY=97...xaa
 ```
-
+> Remenber that you have to configure just [OpenAI](https://openai.com/) or [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/).
 3. Configure the module in Magnolia
 
 Configuration for [Open AI](https://openai.com/)
@@ -89,7 +91,7 @@ Use {0} to insert the value of the properties and {1} for the language
 ### Field _imageAI_
 Creates image content from a given prompt.
 
-![textFieldAI](_docs/field-imageAI.png)
+![imageAI](_docs/field-imageAI.png)
 
 Definition of field _imageAI_
 
