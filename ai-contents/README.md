@@ -15,78 +15,135 @@ This module of [Magnolia CMS](https://www.magnolia-cms.com/) provides a set of f
     <dependency>
         <groupId>org.formentor</groupId>
         <artifactId>ai-contents</artifactId>
-        <version>${ai-contents.version}</version>
+        <version>0.0.1</version>
     </dependency>
 </dependencies>
 ```
-2. Set the _token_ of [OpenAI](https://openai.com/) or _api-key_ of [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/) in [passwords manager](https://docs.magnolia-cms.com/product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html).  
-In case of using [passwords manager](https://docs.magnolia-cms.com/>product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html), the OpenAI token must be stored in the path `/openai/token` and Azure api-key in `/azure/api-key`
-![passwords-manager](_docs/passwords-manager.png)
-It is possible to specify the _token_ and _api-key_ using the environment variables `OPENAI_TOKEN` or `AZURE_API_KEY`
-```bash
-export OPENAI_TOKEN=sk-...84jf
-export AZURE_API_KEY=97...xaa
-```
-> Remenber that you have to configure just [OpenAI](https://openai.com/) or [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/).
-3. Configure the module in Magnolia
+2. Configure the LLM service: [Open AI](https://openai.com/) or [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/)  
+#### OpenAI
+- Specify the host of the API of OpenAI in the configuration of the module.
 
-Configuration for [Open AI](https://openai.com/)
+`config:/magnolia-ai-contents/openAI` 
 
-![open-ai-magnolila](_docs/config-openai.png)
+![open-ai-magnolia](_docs/openai-config.png)
 
-Configuration for [Azure OpenAI](https://azure.microsoft.com/products/cognitive-services/openai-service/)
+- Specify the `API key` of OpenAI in the secret named `openai/api-key` of [Password Manager](https://docs.magnolia-cms.com/product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html).
 
-![open-ai-magnolila](_docs/config-azure.png)
+![openai-api-key](_docs/openai-api-key.png)
+
+- Specify LLM models allowed to create texts. It can be general purpose models - see https://platform.openai.com/docs/models - or fine-tuned models.
+
+![ai-models](_docs/ai-models.png)
+
+#### Azure OpenAI
+- Specify `apiVersion`, `deployment`, `host` and `resource` in configuration of the module.
+
+`config:/magnolia-ai-contents/azure`
+
+![open-ai-magnolila](_docs/azure-config.png)
+
+- Specify the `API key` in the secret named `azure/api-key` of [Password Manager](https://docs.magnolia-cms.com/product-docs/6.2/Modules/List-of-modules/Password-Manager-module.html).
+
+![openai-api-key](_docs/azure-api-key.png)
 
 ## Usage
 ### Field _textFieldAI_
-Creates text content from a given prompt and edits text for given instructions.
+Text field whose content can be created from existing contents using AI.
 
-![textFieldAI](_docs/field-textFieldAI.png)
+![textFieldAI](_docs/textFieldAI.png)
 
 Definition of field _textFieldAI_
 
 ```yaml
 textFieldUsingAI:
   $type: textFieldAI
-  rows: 12
-  words: 300
-  performance: high
   strategy: completion
+  model: gpt-3.5-turbo
+  words: 300
   promptGenerator:
-    template: products-app.ai.prompt.template.description
+    template: ai.prompt.template.hotels-app.description
     properties:
-      name:
-        name: name
-      description:
-        name: description
-      tourTypes:
+      title:
+        name: title
+      category:
         targetWorkspace: category
         targetPropertyName: displayName
+      rooms:
+        name: rooms
+      country:
+        name: country
+      city:
+        name: city
 ```
 ### Field properties
-#### words
-Specifies the number of words of the text created using AI.
-#### performance
-Indicates the performance of the prediction model. Allowed values:
-- **best** 
-- **high**
-- **medium**
-- **low**
 
-#### strategy
-Specifies the completion strategy to add text content using OpenAI. Allowed values:
+#### Field-specific properties
+<table>
+<tr><th>Property</th><th>Description</th></tr>
+<tr>
+<td><code>strategy</code></td>
+<td>
+<strong>Required</strong>
+
+Specifies the completion strategy to create the text.
+
 - `completion` to write the text from a given prompt.
 - `edit` to edit the current text from instructions -e.g. "Translate the following from slang to a business letter" -.
- 
-#### promptGenerator
-Specifies the form properties and template used to generate a prompt for completion.
+</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>
+<i>Optional</i>
 
-- _properties_ as the list of properties in the form whose value will appear in the prompt. In case of `link fields`, specify the target `workspace` and `property` in target workspace.
-- _template_ specifies the message or copy with the prompt template.
-> products-app.ai.prompt.template.description=Write a product description based on the information provided in the technical specifications delimited by triple backticks.\n\nUse {1} as language.\n\nTechnical specifications: ```{0}```
+AI model used to create text, it can be a general purpose model like `gpt-3.5-turbo` or a fine-tuned model trained with contentes from Magnolia.
+</td>
+</tr>
+<tr>
+<td><code>words</code></td>
+<td>
+<i>Optional</i>
 
-Use {0} to insert the value of the properties and {1} for the language 
+Number of words of the generated text.
+
+The value of `words` is used to build the prompt. See `promptGenerator` to know how to make it.
+</td>
+</tr>
+<tr>
+<td><code>promptGenerator</code></td>
+<td>
+<i>Optional</i>
+
+Prompt template and fields of the form that will be used to build the prompt used by AI to generate the text.
+
+<strong>properties</strong>
+
+List of fields in the form whose value will appear in the prompt. In case of `link fields`, specify the target `workspace` and `property` name (prompt generator will take the value of this property)
+
+> NOTE
+> 
+> In case of composite fields, you will prefix the property name with the path of the child node -e.g. /location/address/number means child node "/location/address" and property name "number"
+> 
+
+<strong>template</strong>
+
+Name of the copy that contains the template of the prompt.
+
+The copy can include the following tokens:
+
+- Value of fields specified by `promptGenerator.properties`
+- Current language
+- Number of words specified by `words`
+
+Example of prompt template
+
+<code>Write a product description based on the information provided in the technical specifications delimited by triple backticks.\n\nUse {1} as language.\n\nUse at most {2} words.\n\nTechnical specifications: ```{0}```</code>
+</td>
+</tr>
+</table>
+
+#### Common text field properties
+This field extends [Text field](https://docs.magnolia-cms.com/product-docs/6.2/Developing/Templating/Dialog-definition/Field-definition/List-of-fields/Text-field.html) and it is possible to specify any property from this field.
 
 ### Field _imageAI_
 Creates image content from a given prompt.
@@ -118,3 +175,6 @@ subApps:
               label: ""
               $type: imageAI
 ```
+
+## Git Repository
+https://github.com/formentor-studio/magnolia-ai-contents
